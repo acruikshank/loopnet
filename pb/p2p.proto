@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package protocols.p2p;
+
+message NoteData {
+    string clientVersion = 1; // client version
+    uint32 revision = 2;      // number of times the source has updated the note
+    uint32 note = 3;          // current midi note
+    bool mute = 4;            // muted or not
+    string nodeId = 5;        // id of node that created the message (not the peer that may have sent it). =base58(mh(sha256(nodePubKey)))
+    string address = 6;       // public address of source node
+    bytes nodePubKey = 7;    // Authoring node Secp256k1 public key (32bytes) - protobufs serielized
+    bytes sign = 8;           // signature of message data + method specific data by message authoring node. format: string([]bytes)
+}
+
+// a notification is any number of NoteData and DeathNotice messages
+message Message {
+    repeated NoteData notes = 1;
+}
