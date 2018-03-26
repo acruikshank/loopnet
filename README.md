@@ -1,4 +1,16 @@
 
-# `loppnet`
+# loopnet
 
-A test bed for distributed computing.
+A little experiment with libp2p.
+
+# Install
+
+```
+go build
+```
+
+# Run
+
+```
+./loopnet
+```

@@ -114,19 +114,19 @@ func (np *NotificationProtocol) sendNotification(nodeId peer.ID) bool{
 }
 
 func (np *NotificationProtocol) OpenStream(nodeId peer.ID) (inet.Stream, error) {
-  np.streamsMux.Lock()
-  defer np.streamsMux.Unlock()
-
-  s, found := np.streams[nodeId.String()]
-  if found {
-    return s, nil
-  }
-
+  // np.streamsMux.Lock()
+  // defer np.streamsMux.Unlock()
+  //
+  // s, found := np.streams[nodeId.String()]
+  // if found {
+  //   return s, nil
+  // }
+  //
 	stream, err := np.node.NewStream(context.Background(), nodeId, notificationRequest)
 	if err != nil {
 		return nil, err
 	}
-  np.streams[nodeId.String()] = stream
+  // np.streams[nodeId.String()] = stream
 
   return stream, nil
 }

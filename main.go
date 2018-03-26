@@ -56,7 +56,7 @@ func main() {
 
 	// Make 10 nodes
   nodes := make([]*loopnet.Node,0)
-  for i := 0; i < 5; i++ {
+  for i := 0; i < 10; i++ {
     nodes = append(nodes, createNode(60+i))
   }
 
@@ -65,17 +65,24 @@ func main() {
     node.ConnectToHost(nodes[(i+1)%len(nodes)])
   }
 
-  // run 10 rounds of notifications
-  for i := 0; i < 100; i++ {
-    for j, node := range nodes {
-      fmt.Printf("Having %v (%d) notify\n", node.ID(), j)
-      node.Notify()
-      time.Sleep(1000*time.Millisecond)
-    }
+	done := make(chan bool, 1)
 
-    fmt.Println("\n\n\n\nRound", i+1)
-    for j, node := range nodes {
-      fmt.Printf("Host %d: %v\n", j+1, node.NoteStore.ActiveNoteNumbers())
+  // run 10 rounds of notifications
+  go func() {
+    for i := 0; i < 100; i++ {
+      for j, node := range nodes {
+        fmt.Printf("Having %v (%d) notify\n", node.ID(), j)
+        node.Notify()
+        time.Sleep(100*time.Millisecond)
+      }
+
+      fmt.Println("\n\n\n\nRound", i+1)
+      for j, node := range nodes {
+        fmt.Printf("Host %d: %v\n", j+1, node.NoteStore.ActiveNoteNumbers())
+      }
     }
-  }
+    done <- true
+  }()
+
+	<-done
 }
