@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-  "time"
+	"time"
 	// "log"
 	"math/rand"
 
-  loopnet "github.com/acruikshank/loopnet/net"
+	loopnet "github.com/acruikshank/loopnet/net"
 	bhost "github.com/libp2p/go-libp2p/p2p/host/basic"
 	swarm "gx/ipfs/QmSwZMWwFZSUpe5muU2xgTUwppH24KfMwdPXiwbEp2c6G5/go-libp2p-swarm"
 	ma "gx/ipfs/QmWWQ2Txc2c6tqjsBpzg5Ar652cHPGNsQQp2SejkNmkUMb/go-multiaddr"
@@ -24,24 +24,24 @@ func createNode(note int) *loopnet.Node {
 	priv, pub, _ := crypto.GenerateKeyPair(crypto.Secp256k1, 256)
 	pid, _ := peer.IDFromPublicKey(pub)
 	listen, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", port))
-  if err != nil {
-    panic("Could not create multiaddress")
-  }
-  fmt.Println("Created multiaddress")
+	if err != nil {
+		panic("Could not create multiaddress")
+	}
+	fmt.Println("Created multiaddress")
 	peerStore := ps.NewPeerstore()
 	peerStore.AddPrivKey(pid, priv)
 	peerStore.AddPubKey(pid, pub)
 	n, err := swarm.NewNetwork(context.Background(), []ma.Multiaddr{listen}, pid, peerStore, nil)
-  if err != nil {
-    panic(err)
-  }
+	if err != nil {
+		panic(err)
+	}
 
 	host := bhost.New(n)
 
 	node := loopnet.NewNode(host)
-  noteData := node.NewNoteData(0,note,false)
-  node.NotificationProtocol.NoteStore = loopnet.NewNoteStore(noteData)
-  return node
+	noteData := node.NewNoteData(0, note, false)
+	node.NotificationProtocol.NoteStore = loopnet.NewNoteStore(noteData)
+	return node
 }
 
 // TODO:
@@ -51,38 +51,38 @@ func createNode(note int) *loopnet.Node {
 // Add UI and synthesis
 
 func main() {
-  // Choose random ports between 10000-10100
+	// Choose random ports between 10000-10100
 	rand.Seed(666)
 
 	// Make 10 nodes
-  nodes := make([]*loopnet.Node,0)
-  for i := 0; i < 10; i++ {
-    nodes = append(nodes, createNode(60+i))
-  }
+	nodes := make([]*loopnet.Node, 0)
+	for i := 0; i < 10; i++ {
+		nodes = append(nodes, createNode(60+i))
+	}
 
-  // connect round robin
-  for i, node := range nodes {
-    node.ConnectToHost(nodes[(i+1)%len(nodes)])
-  }
+	// connect round robin
+	for i, node := range nodes {
+		node.ConnectToHost(nodes[(i+1)%len(nodes)])
+	}
 
 	done := make(chan bool, 1)
 
-  // run 10 rounds of notifications
-  go func() {
-    for i := 0; i < 100; i++ {
-      for j, node := range nodes {
-        fmt.Printf("Having %v (%d) notify\n", node.ID(), j)
-        node.Notify()
-        time.Sleep(100*time.Millisecond)
-      }
+	// run 10 rounds of notifications
+	go func() {
+		for i := 0; i < 100; i++ {
+			for j, node := range nodes {
+				fmt.Printf("Having %v (%d) notify\n", node.ID(), j)
+				node.Notify()
+				time.Sleep(100 * time.Millisecond)
+			}
 
-      fmt.Println("\n\n\n\nRound", i+1)
-      for j, node := range nodes {
-        fmt.Printf("Host %d: %v\n", j+1, node.NoteStore.ActiveNoteNumbers())
-      }
-    }
-    done <- true
-  }()
+			fmt.Println("\n\n\n\nRound", i+1)
+			for j, node := range nodes {
+				fmt.Printf("Host %d: %v\n", j+1, node.NoteStore.ActiveNoteNumbers())
+			}
+		}
+		done <- true
+	}()
 
 	<-done
 }

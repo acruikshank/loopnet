@@ -18,8 +18,8 @@ const clientVersion = "go-p2p-node/0.0.1"
 
 // Node type - a p2p host implementing one or more p2p protocols
 type Node struct {
-	host.Host     // lib-p2p host
-  *NotificationProtocol
+	host.Host // lib-p2p host
+	*NotificationProtocol
 }
 
 // Create a new node with its implemented protocols
@@ -128,22 +128,22 @@ func (n *Node) NewNoteData(revision int, note int, mute bool) *p2p.NoteData {
 	}
 
 	noteData := &p2p.NoteData{
-    ClientVersion: clientVersion,
-    Revision: uint32(revision),
-    Note: uint32(note),
-    Mute: mute,
-		NodeId: peer.IDB58Encode(n.ID()),
-		NodePubKey: nodePubKey,
-    Sign: make([]byte,0)}
+		ClientVersion: clientVersion,
+		Revision:      uint32(revision),
+		Note:          uint32(note),
+		Mute:          mute,
+		NodeId:        peer.IDB58Encode(n.ID()),
+		NodePubKey:    nodePubKey,
+		Sign:          make([]byte, 0)}
 
-  signature, err := n.signProtoNote(noteData)
+	signature, err := n.signProtoNote(noteData)
 	if err != nil {
 		panic("Failed to sign note.")
 	}
 
-  noteData.Sign = signature
+	noteData.Sign = signature
 
-  return noteData
+	return noteData
 }
 
 // helper method - writes a protobuf go data object to a network stream
