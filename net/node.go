@@ -133,6 +133,7 @@ func (n *Node) NewNoteData(revision int, note int, mute bool) *p2p.NoteData {
 		Note:          uint32(note),
 		Mute:          mute,
 		NodeId:        peer.IDB58Encode(n.ID()),
+		Address:	   n.Addrs()[0].String(),
 		NodePubKey:    nodePubKey,
 		Sign:          make([]byte, 0)}
 
