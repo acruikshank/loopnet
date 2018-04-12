@@ -17,7 +17,7 @@ import (
 
 // pattern: /protocol-name/request-or-response-message/version
 const notificationRequest = "/loopnet/notify/0.0.1"
-const maxNotesPerNotification = 4
+const maxNotesPerNotification = 10
 
 // NotificationProtocol type
 type NotificationProtocol struct {
@@ -37,7 +37,7 @@ func NewNotificationProtocol(node *Node) *NotificationProtocol {
 
 // remote peer requests handler
 func (np *NotificationProtocol) onNotification(s inet.Stream) {
-	log.Printf("%s: Received notification from %s.", np.node.ID(), s.Conn().RemotePeer())
+	//log.Printf("%s: Received notification from %s.", np.node.ID(), s.Conn().RemotePeer())
 	// get request data
 	notification := &p2p.Message{}
 	decoder := protobufCodec.Multicodec(nil).Decoder(bufio.NewReader(s))
@@ -68,30 +68,32 @@ func (np *NotificationProtocol) onNotification(s inet.Stream) {
 				continue
 			}
 
-			log.Printf("%s: adding to notes: %s.", np.node.ID(), nodeId)
+			//log.Printf("%s: adding to notes: %s.", np.node.ID(), nodeId)
 			np.node.Peerstore().AddAddrs(nodeId, []ma.Multiaddr{address}, ps.PermanentAddrTTL)
 		}
 	}
 }
 
 func (np *NotificationProtocol) Notify() bool {
-	destination := np.NoteStore.RandomNotes(1, true)
-	if len(destination) < 1 {
+	destinations := np.NoteStore.RandomNotes(2, true)
+	if len(destinations) < 1 {
 		// no nodes to notify
 		return true
 	}
 
-	nodeId, err := peer.IDB58Decode(destination[0].NodeId)
-	if err != nil {
-		log.Println("Error converting id", err)
-		return false
-	}
+	for _, destination := range destinations {
+		nodeId, err := peer.IDB58Decode(destination.NodeId)
+		if err != nil {
+			log.Println("Error converting id", err)
+			return false
+		}
 
-	ok := np.sendNotification(nodeId)
-	if !ok {
-		log.Println("Failed to send")
+		ok := np.sendNotification(nodeId)
+		if !ok {
+			log.Println("Failed to send")
+		}
 	}
-	return ok
+	return true
 }
 
 func (np *NotificationProtocol) ConnectToHost(node *Node) {
@@ -100,7 +102,7 @@ func (np *NotificationProtocol) ConnectToHost(node *Node) {
 }
 
 func (np *NotificationProtocol) sendNotification(nodeId peer.ID) bool {
-	log.Printf("%s: Sending notification to %s.", np.node.ID(), nodeId)
+	//log.Printf("%s: Sending notification to %s.", np.node.ID(), nodeId)
 	notes := np.NoteStore.RandomNotes(maxNotesPerNotification, false)
 	req := &p2p.Message{Notes: notes}
 
